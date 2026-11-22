@@ -1,0 +1,12 @@
+{
+  "date_run": "2026-11-22 20:23",
+  "os": "Windows-10-10.0.26200-SP0",
+  "cpu": "Intel64 Family 6 Model 140 Stepping 1, GenuineIntel",
+  "logical_cores": 8,
+  "ram_gb": 7.8,
+  "python": "3.11.9",
+  "polars": "2.1.0",
+  "pyarrow": "26.0.1",
+  "polars_threads": 8,
+  "pandas": "3.1.1"
+}

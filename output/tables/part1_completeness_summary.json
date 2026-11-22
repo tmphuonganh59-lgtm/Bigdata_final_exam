@@ -1,0 +1,13 @@
+{
+  "expected_quarters": 170,
+  "quarters_present": 170,
+  "missing_quarters": [],
+  "unexpected_quarters": [],
+  "raw_files": 170,
+  "total_rows": 1682738,
+  "distinct_banks_CERT": 24064,
+  "duplicate_CERT_REPDTE": 0,
+  "null_CERT": 0,
+  "quarters_not_matching_api_total": 0,
+  "manifest_check": "compared with manifest columns 'key', 'api_total'"
+}

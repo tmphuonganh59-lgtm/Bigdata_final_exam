@@ -1,0 +1,19 @@
+query,layout,rows,sum_ASSET,same_as_reference
+full_read,CSV (1 file),1682738,1982162714822.0,true
+full_read,Parquet uncompressed (1 file),1682738,1982162714822.0,true
+full_read,Parquet snappy (1 file),1682738,1982162714822.0,true
+full_read,Parquet zstd (1 file),1682738,1982162714822.0,true
+full_read,"Parquet zstd, 170 files by quarter",1682738,1982162714822.0,true
+full_read,"Parquet zstd, partitioned by YEAR",1682738,1982162714822.0,true
+read_3_columns,CSV (1 file),1682738,1982162714822.0,true
+read_3_columns,Parquet uncompressed (1 file),1682738,1982162714822.0,true
+read_3_columns,Parquet snappy (1 file),1682738,1982162714822.0,true
+read_3_columns,Parquet zstd (1 file),1682738,1982162714822.0,true
+read_3_columns,"Parquet zstd, 170 files by quarter",1682738,1982162714822.0,true
+read_3_columns,"Parquet zstd, partitioned by YEAR",1682738,1982162714822.0,true
+read_year_2008,CSV (1 file),34003,54527673649.0,true
+read_year_2008,Parquet uncompressed (1 file),34003,54527673649.0,true
+read_year_2008,Parquet snappy (1 file),34003,54527673649.0,true
+read_year_2008,Parquet zstd (1 file),34003,54527673649.0,true
+read_year_2008,"Parquet zstd, 170 files by quarter",34003,54527673649.0,true
+read_year_2008,"Parquet zstd, partitioned by YEAR",34003,54527673649.0,true

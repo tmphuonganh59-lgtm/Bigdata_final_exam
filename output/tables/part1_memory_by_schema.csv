@@ -1,0 +1,4 @@
+representation,in_memory_MB
+All columns as text (naive CSV read),403.30907344818115
+As downloaded (starter script types),465.6392412185669
+Explicit schema (Int32 / Date / Float64),458.18468284606934

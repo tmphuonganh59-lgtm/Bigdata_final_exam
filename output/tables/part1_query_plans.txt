@@ -1,0 +1,59 @@
+===== CSV (1 file) | optimized plan =====
+simple π 3/3 ["CERT", "REPDTE", "ASSET"]
+  Csv SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/fin.csv]
+  PROJECT 4/37 COLUMNS
+  SELECTION: col("YEAR") == 2008
+
+===== CSV (1 file) | NOT optimized =====
+SELECT [col("CERT"), col("REPDTE"), col("ASSET")]
+  FILTER col("YEAR") == 2008
+  FROM
+    Csv SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/fin.csv]
+    PROJECT */37 COLUMNS
+
+===== Parquet zstd (1 file) | optimized plan =====
+simple π 3/3 ["CERT", "REPDTE", "ASSET"]
+  Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/fin_zstd.parquet]
+  PROJECT 4/37 COLUMNS
+  SELECTION: col("YEAR") == 2008
+  ESTIMATED ROWS: 1682738
+
+===== Parquet zstd (1 file) | NOT optimized =====
+SELECT [col("CERT"), col("REPDTE"), col("ASSET")]
+  FILTER col("YEAR") == 2008
+  FROM
+    Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/fin_zstd.parquet]
+    PROJECT */37 COLUMNS
+    ESTIMATED ROWS: 1682738
+
+===== Parquet zstd, 170 files by quarter | optimized plan =====
+simple π 3/3 ["CERT", "REPDTE", "ASSET"]
+  Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/by_quarter/19840331.parquet, ... 169 other sources]
+  PROJECT 4/37 COLUMNS
+  SELECTION: col("YEAR") == 2008
+  ESTIMATED ROWS: 1724429
+
+===== Parquet zstd, 170 files by quarter | NOT optimized =====
+SELECT [col("CERT"), col("REPDTE"), col("ASSET")]
+  FILTER col("YEAR") == 2008
+  FROM
+    Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/by_quarter/19840331.parquet, ... 169 other sources]
+    PROJECT */37 COLUMNS
+    ESTIMATED ROWS: 1724429
+
+===== Parquet zstd, partitioned by YEAR | optimized plan =====
+simple π 3/3 ["CERT", "REPDTE", "ASSET"]
+  Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/by_year/YEAR=2008/part-0.parquet]
+  PROJECT 4/37 COLUMNS
+  SELECTION: col("YEAR") == 2008
+  ESTIMATED ROWS: 39648
+
+===== Parquet zstd, partitioned by YEAR | NOT optimized =====
+SELECT [col("CERT"), col("REPDTE"), col("ASSET")]
+  FILTER col("YEAR") == 2008
+  FROM
+    Parquet SCAN [C:/Users/Phuong Anh/bft65b_bench_tmp/by_year/YEAR=1984/part-0.parquet, ... 42 other sources]
+    PROJECT */37 COLUMNS
+    ESTIMATED ROWS: 1704842
+
+Partition pruning: a query for 2008 only needs folder YEAR=2008 (3.6 MB) out of 43 files (165.5 MB).
