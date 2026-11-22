@@ -1,0 +1,35 @@
+rule,rows_affected
+R1 drop rows with ASSET missing or <= 0,0
+R2 RBC1AAJ == 0 with EQ > 0 -> missing (1984-1989),64327
+R2 RBC1AAJ == 0 with EQ > 0 -> missing (1990-2019),30
+R2 RBC1AAJ == 0 with EQ > 0 -> missing (2020-2026),0
+R2 RBCRWAJ == 0 with EQ > 0 -> missing (1984-1989),406539
+R2 RBCRWAJ == 0 with EQ > 0 -> missing (1990-2019),77
+R2 RBCRWAJ == 0 with EQ > 0 -> missing (2020-2026),45370
+"CHECK DEP > ASSET with EQ < 0 (insolvent, kept)",6203
+"CHECK DEP > ASSET with EQ >= 0 (inconsistent, kept and flagged)",2
+R3 ASSET < 0 -> missing,0
+R3 DEP < 0 -> missing,0
+R3 DEPDOM < 0 -> missing,0
+R3 LNLSGR < 0 -> missing,33
+R3 LNLSNET < 0 -> missing,51
+R3 LNATRES < 0 -> missing,9
+R3 LNRE < 0 -> missing,6
+R3 LNCI < 0 -> missing,2
+R3 LNCON < 0 -> missing,0
+R3 SC < 0 -> missing,96
+R3 CHBAL < 0 -> missing,2
+R3 P3ASSET < 0 -> missing,0
+R3 P9ASSET < 0 -> missing,0
+R3 NAASSET < 0 -> missing,2
+R3 NCLNLS < 0 -> missing,3
+R3 ORE < 0 -> missing,645
+R3 BRO < 0 -> missing,0
+R4 INTINC_QTR missing (Q2-Q4 without previous quarter),5278
+R4 EINTEXP_QTR missing (Q2-Q4 without previous quarter),4635
+R4 ELNATR_QTR missing (Q2-Q4 without previous quarter),5026
+R4 NTLNLS_QTR missing (Q2-Q4 without previous quarter),4778
+R4 NETINC_QTR missing (Q2-Q4 without previous quarter),0
+R4 NONII_QTR missing (Q2-Q4 without previous quarter),0
+R4 NONIX_QTR missing (Q2-Q4 without previous quarter),0
+"R5 rows without the previous quarter (gap or first report), flagged HAS_PREV_Q",24097

@@ -1,0 +1,8 @@
+RESTYPE,gap,len
+ASSISTANCE,1 quarter(s),401
+ASSISTANCE,2 quarter(s),10
+ASSISTANCE,no report before event,1
+FAILURE,1 quarter(s),2531
+FAILURE,2 quarter(s),310
+FAILURE,3 quarter(s),1
+FAILURE,no report before event,21

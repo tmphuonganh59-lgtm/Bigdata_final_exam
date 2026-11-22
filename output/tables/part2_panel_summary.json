@@ -1,0 +1,11 @@
+{
+  "rows_loaded": 1682738,
+  "rows_in_panel": 1682738,
+  "rows_with_label": 1665209,
+  "positives_Y": 12495,
+  "positive_rate": 0.007503562615863835,
+  "positives_failure_only": 10903,
+  "late_signal_positive_rows": 1730,
+  "distinct_events_with_positive_rows": 3251,
+  "banks": 24064
+}

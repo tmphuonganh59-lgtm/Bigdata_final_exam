@@ -1,0 +1,18 @@
+{
+  "rows_asset_null_or_nonpositive": 0,
+  "rows_negative_equity": 15647,
+  "duplicate_CERT_REPDTE": 0,
+  "banks": 24064,
+  "banks_with_internal_gaps": 32,
+  "missing_internal_quarters": 92,
+  "events_since_1984": 3275,
+  "events_since_1984_missing_CERT": 0,
+  "events_linked_to_financials": 3253,
+  "events_usable_for_label_gap_le_4q": 3253,
+  "events_within_60_days_of_last_report": 1732,
+  "banks_exited_before_2026Q2": 19751,
+  "exited_banks_in_failures_table": 3234,
+  "financial_CERT_not_in_institutions": 232,
+  "active_flag_but_stopped_reporting": 2,
+  "inactive_flag_but_reporting_2026Q2": 58
+}
