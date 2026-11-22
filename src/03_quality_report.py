@@ -73,24 +73,29 @@ def qidx(col):
     return pl.col(col).dt.year().cast(pl.Int32) * 4 + (pl.col(col).dt.month().cast(pl.Int32) - 1) // 3
 
 
-def heatmap(table, value_name, title, path):
+def heatmap(table, value_name, title, path, min_share=0.01):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     years = table["YEAR"].to_list()
-    vars_ = [c for c in table.columns if c != "YEAR"]
+    # show only variables that reach min_share in at least one year (readable in the report)
+    vars_ = [c for c in table.columns if c != "YEAR" and (table[c].max() or 0) >= min_share]
     data = table.select(vars_).to_numpy().T
-    fig, ax = plt.subplots(figsize=(14, 8))
-    im = ax.imshow(data, aspect="auto", cmap="Reds", vmin=0, vmax=1)
+    fig, ax = plt.subplots(figsize=(10, 0.32 * len(vars_) + 2.0))
+    im = ax.imshow(data, aspect="auto", cmap="Reds", vmin=0, vmax=1, interpolation="nearest")
     ax.set_yticks(range(len(vars_)))
-    ax.set_yticklabels(vars_, fontsize=7)
-    step = 2
+    ax.set_yticklabels(vars_, fontsize=10)
+    step = 4
     ax.set_xticks(range(0, len(years), step))
-    ax.set_xticklabels(years[::step], rotation=90, fontsize=7)
-    ax.set_title(title)
-    fig.colorbar(im, ax=ax, label=value_name)
-    fig.tight_layout()
+    ax.set_xticklabels(years[::step], rotation=45, fontsize=10)
+    ax.set_xlabel("Year", fontsize=10)
+    ax.set_title(title, fontsize=12)
+    cb = fig.colorbar(im, ax=ax)
+    cb.set_label(value_name, fontsize=10)
+    fig.text(0.01, 0.01, f"Only variables with a share of at least {min_share:.0%} in some year are shown.",
+             fontsize=8)
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
     fig.savefig(path, dpi=200)
     plt.close(fig)
 
