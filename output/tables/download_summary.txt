@@ -1,0 +1,9 @@
+Download date: 2026-11-22
+Source: FDIC BankFind API
+Quarters: 170, 1984Q1 to 2026Q2
+Financials rows: 1682738
+Distinct banks CERT: 24064
+Duplicate CERT-REPDTE: 0
+Incomplete quarters: none
+Failures rows: 4117
+Institutions rows: 27838
