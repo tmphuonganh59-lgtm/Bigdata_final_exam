@@ -1,0 +1,84 @@
+===== OPTIMIZED PLAN =====
+SORT BY [col("CERT"), col("QIDX")]
+  simple π 39/39 ["CERT", "REPDTE", "QIDX", ... 36 other columns]
+     WITH_COLUMNS:
+     [(col("F_ROA_Q") - col("ROA_MEDIAN_Q")).alias("F_ROA_VS_MEDIAN"), (col("F_NPL").rank().over([col("REPDTE")]) / col("F_NPL").count().over([col("REPDTE")]).cast(Float64)).alias("F_NPL_PCTRANK"), (col("F_EQ_TA").rank().over([col("REPDTE")]) / col("F_EQ_TA").count().over([col("REPDTE")]).cast(Float64)).alias("F_EQ_TA_PCTRANK")] 
+      LEFT JOIN:
+      LEFT PLAN ON: [col("REPDTE")]
+        CACHE[id: 6a67c44a-5d83-471f-a018-416af785b8a4]
+           WITH_COLUMNS:
+           [when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(col("F_EQ_TA") - col("F_EQ_TA").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_EQ_TA_CHG_4Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 1]).over([col("CERT")])) == 1).then(col("F_NPL") - col("F_NPL").shift([dyn int: 1]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_NPL_CHG_1Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 3]).over([col("CERT")])) == 3).then((((col("F_ROA_Q") + col("F_ROA_Q").shift([dyn int: 1]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 2]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 3]).over([col("CERT")])) / 4.0).otherwise(null.cast(Float64)).alias("F_ROA_4Q_AVG")] 
+            simple π 33/33 ["CERT", "REPDTE", "QIDX", ... 30 other columns]
+               WITH_COLUMNS:
+               [(when(col("__POLARS_CSER_0x100000003")).then(col("EQ") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_EQ_TA"), (when(col("__POLARS_CSER_0x100000007")).then(col("NCLNLS") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NPL"), (when(col("__POLARS_CSER_0x100000007")).then(col("LNATRES") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_RES_LN"), (when(col("__POLARS_CSER_0x100000003")).then((col("NETINC_QTR") * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ROA_Q"), (when(col("__POLARS_CSER_0x100000003")).then(((col("INTINC_QTR") - col("EINTEXP_QTR")) * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_NIM_Q"), (when(col("__POLARS_CSER_0x100000007")).then((col("ELNATR_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_PROV_LN"), (when(col("__POLARS_CSER_0x100000007")).then((col("NTLNLS_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NCO_LN"), (when(col("__POLARS_CSER_0x100000003")).then((col("CHBAL") + col("SC")) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_LIQ"), (when(col("__POLARS_CSER_0x100000020")).then(col("BRO") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_BRO_DEP"), (when(col("__POLARS_CSER_0x100000003")).then(col("ORE") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ORE_TA"), (when(col("__POLARS_CSER_0x100000020")).then(col("LNLSGR") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_LN_DEP"), col("ASSET").log([dyn float: 2.718281828459045]).alias("F_LOG_TA"), when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(when(col("ASSET").shift([dyn int: 4]).over([col("CERT")]) > 0.0).then(col("ASSET") / col("ASSET").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)) - 1.0).otherwise(null.cast(Float64)).alias("F_TA_GROWTH_4Q")] 
+                 WITH_COLUMNS:
+                 [(col("ASSET") > 0.0).alias("__POLARS_CSER_0x100000003"), (col("LNLSGR") > 0.0).alias("__POLARS_CSER_0x100000007"), (col("DEP") > 0.0).alias("__POLARS_CSER_0x100000020")] 
+                  SORT BY [col("CERT"), col("QIDX")]
+                    Parquet SCAN [C:/Users/Phuong Anh/OneDrive/Tài liệu/Bigdata_final_exam/data/processed/panel/YEAR=1984/part-0.parquet, ... 42 other sources]
+                    PROJECT 20/59 COLUMNS
+                    ESTIMATED ROWS: 1703669
+      RIGHT PLAN ON: [col("REPDTE")]
+        AGGREGATE[maintain_order: false]
+          [col("F_ROA_Q").median().alias("ROA_MEDIAN_Q")] BY [col("REPDTE")]
+          FROM
+          simple π 2/2 ["REPDTE", "F_ROA_Q"]
+            CACHE[id: 6a67c44a-5d83-471f-a018-416af785b8a4]
+      END LEFT JOIN
+
+===== NOT OPTIMIZED =====
+SORT BY [col("CERT"), col("QIDX")]
+  SELECT [col("CERT"), col("REPDTE"), col("QIDX"), col("ASSET"), col("EQ"), col("DEP"), col("LNLSGR"), col("NCLNLS"), col("LNATRES"), col("CHBAL"), col("SC"), col("BRO"), col("ORE"), col("NETINC_QTR"), col("INTINC_QTR"), col("EINTEXP_QTR"), col("ELNATR_QTR"), col("NTLNLS_QTR"), col("Y"), col("LABEL_AVAILABLE"), col("F_EQ_TA"), col("F_NPL"), col("F_RES_LN"), col("F_ROA_Q"), col("F_NIM_Q"), col("F_PROV_LN"), col("F_NCO_LN"), col("F_LIQ"), col("F_BRO_DEP"), col("F_ORE_TA"), col("F_LN_DEP"), col("F_LOG_TA"), col("F_TA_GROWTH_4Q"), col("F_EQ_TA_CHG_4Q"), col("F_NPL_CHG_1Q"), col("F_ROA_4Q_AVG"), col("F_ROA_VS_MEDIAN"), col("F_NPL_PCTRANK"), col("F_EQ_TA_PCTRANK")]
+     WITH_COLUMNS:
+     [(col("F_ROA_Q") - col("ROA_MEDIAN_Q")).alias("F_ROA_VS_MEDIAN"), (col("F_NPL").rank().over([col("REPDTE")]) / col("F_NPL").count().over([col("REPDTE")]).cast(Float64)).alias("F_NPL_PCTRANK"), (col("F_EQ_TA").rank().over([col("REPDTE")]) / col("F_EQ_TA").count().over([col("REPDTE")]).cast(Float64)).alias("F_EQ_TA_PCTRANK")] 
+      LEFT JOIN:
+      LEFT PLAN ON: [col("REPDTE")]
+         WITH_COLUMNS:
+         [when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(when(col("ASSET").shift([dyn int: 4]).over([col("CERT")]) > 0.0).then(col("ASSET") / col("ASSET").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)) - 1.0).otherwise(null.cast(Float64)).alias("F_TA_GROWTH_4Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(col("F_EQ_TA") - col("F_EQ_TA").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_EQ_TA_CHG_4Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 1]).over([col("CERT")])) == 1).then(col("F_NPL") - col("F_NPL").shift([dyn int: 1]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_NPL_CHG_1Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 3]).over([col("CERT")])) == 3).then((((col("F_ROA_Q") + col("F_ROA_Q").shift([dyn int: 1]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 2]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 3]).over([col("CERT")])) / 4.0).otherwise(null.cast(Float64)).alias("F_ROA_4Q_AVG")] 
+           WITH_COLUMNS:
+           [(when(col("ASSET") > 0.0).then(col("EQ") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_EQ_TA"), (when(col("LNLSGR") > 0.0).then(col("NCLNLS") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NPL"), (when(col("LNLSGR") > 0.0).then(col("LNATRES") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_RES_LN"), (when(col("ASSET") > 0.0).then((col("NETINC_QTR") * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ROA_Q"), (when(col("ASSET") > 0.0).then(((col("INTINC_QTR") - col("EINTEXP_QTR")) * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_NIM_Q"), (when(col("LNLSGR") > 0.0).then((col("ELNATR_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_PROV_LN"), (when(col("LNLSGR") > 0.0).then((col("NTLNLS_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NCO_LN"), (when(col("ASSET") > 0.0).then((col("CHBAL") + col("SC")) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_LIQ"), (when(col("DEP") > 0.0).then(col("BRO") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_BRO_DEP"), (when(col("ASSET") > 0.0).then(col("ORE") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ORE_TA"), (when(col("DEP") > 0.0).then(col("LNLSGR") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_LN_DEP"), col("ASSET").log([dyn float: 2.718281828459045]).alias("F_LOG_TA")] 
+            SORT BY [col("CERT"), col("QIDX")]
+              SELECT [col("CERT"), col("REPDTE"), col("QIDX"), col("ASSET"), col("EQ"), col("DEP"), col("LNLSGR"), col("NCLNLS"), col("LNATRES"), col("CHBAL"), col("SC"), col("BRO"), col("ORE"), col("NETINC_QTR"), col("INTINC_QTR"), col("EINTEXP_QTR"), col("ELNATR_QTR"), col("NTLNLS_QTR"), col("Y"), col("LABEL_AVAILABLE")]
+                Parquet SCAN [C:/Users/Phuong Anh/OneDrive/Tài liệu/Bigdata_final_exam/data/processed/panel/YEAR=1984/part-0.parquet, ... 42 other sources]
+                PROJECT */59 COLUMNS
+                ESTIMATED ROWS: 1703669
+      RIGHT PLAN ON: [col("REPDTE")]
+        AGGREGATE[maintain_order: false]
+          [col("F_ROA_Q").median().alias("ROA_MEDIAN_Q")] BY [col("REPDTE")]
+          FROM
+           WITH_COLUMNS:
+           [when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(when(col("ASSET").shift([dyn int: 4]).over([col("CERT")]) > 0.0).then(col("ASSET") / col("ASSET").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)) - 1.0).otherwise(null.cast(Float64)).alias("F_TA_GROWTH_4Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 4]).over([col("CERT")])) == 4).then(col("F_EQ_TA") - col("F_EQ_TA").shift([dyn int: 4]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_EQ_TA_CHG_4Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 1]).over([col("CERT")])) == 1).then(col("F_NPL") - col("F_NPL").shift([dyn int: 1]).over([col("CERT")])).otherwise(null.cast(Float64)).alias("F_NPL_CHG_1Q"), when((col("QIDX") - col("QIDX").shift([dyn int: 3]).over([col("CERT")])) == 3).then((((col("F_ROA_Q") + col("F_ROA_Q").shift([dyn int: 1]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 2]).over([col("CERT")])) + col("F_ROA_Q").shift([dyn int: 3]).over([col("CERT")])) / 4.0).otherwise(null.cast(Float64)).alias("F_ROA_4Q_AVG")] 
+             WITH_COLUMNS:
+             [(when(col("ASSET") > 0.0).then(col("EQ") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_EQ_TA"), (when(col("LNLSGR") > 0.0).then(col("NCLNLS") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NPL"), (when(col("LNLSGR") > 0.0).then(col("LNATRES") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_RES_LN"), (when(col("ASSET") > 0.0).then((col("NETINC_QTR") * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ROA_Q"), (when(col("ASSET") > 0.0).then(((col("INTINC_QTR") - col("EINTEXP_QTR")) * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_NIM_Q"), (when(col("LNLSGR") > 0.0).then((col("ELNATR_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_PROV_LN"), (when(col("LNLSGR") > 0.0).then((col("NTLNLS_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NCO_LN"), (when(col("ASSET") > 0.0).then((col("CHBAL") + col("SC")) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_LIQ"), (when(col("DEP") > 0.0).then(col("BRO") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_BRO_DEP"), (when(col("ASSET") > 0.0).then(col("ORE") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ORE_TA"), (when(col("DEP") > 0.0).then(col("LNLSGR") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_LN_DEP"), col("ASSET").log([dyn float: 2.718281828459045]).alias("F_LOG_TA")] 
+              SORT BY [col("CERT"), col("QIDX")]
+                SELECT [col("CERT"), col("REPDTE"), col("QIDX"), col("ASSET"), col("EQ"), col("DEP"), col("LNLSGR"), col("NCLNLS"), col("LNATRES"), col("CHBAL"), col("SC"), col("BRO"), col("ORE"), col("NETINC_QTR"), col("INTINC_QTR"), col("EINTEXP_QTR"), col("ELNATR_QTR"), col("NTLNLS_QTR"), col("Y"), col("LABEL_AVAILABLE")]
+                  Parquet SCAN [C:/Users/Phuong Anh/OneDrive/Tài liệu/Bigdata_final_exam/data/processed/panel/YEAR=1984/part-0.parquet, ... 42 other sources]
+                  PROJECT */59 COLUMNS
+                  ESTIMATED ROWS: 1703669
+      END LEFT JOIN
+
+===== OPTIMIZED PLAN, SORTED-SHIFT VERSION =====
+SORT BY [col("CERT"), col("QIDX")]
+  simple π 39/39 ["CERT", "REPDTE", "QIDX", ... 36 other columns]
+     WITH_COLUMNS:
+     [(col("F_ROA_Q") - col("ROA_MEDIAN_Q")).alias("F_ROA_VS_MEDIAN"), (col("F_NPL").rank().over([col("REPDTE")]) / col("F_NPL").count().over([col("REPDTE")]).cast(Float64)).alias("F_NPL_PCTRANK"), (col("F_EQ_TA").rank().over([col("REPDTE")]) / col("F_EQ_TA").count().over([col("REPDTE")]).cast(Float64)).alias("F_EQ_TA_PCTRANK")] 
+      LEFT JOIN:
+      LEFT PLAN ON: [col("REPDTE")]
+        CACHE[id: ee02530f-5e84-4f1a-b258-c99c0422a851]
+           WITH_COLUMNS:
+           [when((col("CERT").shift([dyn int: 4]) == col("CERT")) & ((col("QIDX") - col("QIDX").shift([dyn int: 4])) == 4)).then(col("F_EQ_TA") - col("F_EQ_TA").shift([dyn int: 4])).otherwise(null.cast(Float64)).alias("F_EQ_TA_CHG_4Q"), when((col("CERT").shift([dyn int: 1]) == col("CERT")) & ((col("QIDX") - col("QIDX").shift([dyn int: 1])) == 1)).then(col("F_NPL") - col("F_NPL").shift([dyn int: 1])).otherwise(null.cast(Float64)).alias("F_NPL_CHG_1Q"), when((col("CERT").shift([dyn int: 3]) == col("CERT")) & ((col("QIDX") - col("QIDX").shift([dyn int: 3])) == 3)).then((((col("F_ROA_Q") + col("F_ROA_Q").shift([dyn int: 1])) + col("F_ROA_Q").shift([dyn int: 2])) + col("F_ROA_Q").shift([dyn int: 3])) / 4.0).otherwise(null.cast(Float64)).alias("F_ROA_4Q_AVG")] 
+            simple π 33/33 ["CERT", "REPDTE", "QIDX", ... 30 other columns]
+               WITH_COLUMNS:
+               [(when(col("__POLARS_CSER_0x100000003")).then(col("EQ") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_EQ_TA"), (when(col("__POLARS_CSER_0x100000007")).then(col("NCLNLS") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NPL"), (when(col("__POLARS_CSER_0x100000007")).then(col("LNATRES") / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_RES_LN"), (when(col("__POLARS_CSER_0x100000003")).then((col("NETINC_QTR") * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ROA_Q"), (when(col("__POLARS_CSER_0x100000003")).then(((col("INTINC_QTR") - col("EINTEXP_QTR")) * 4.0) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_NIM_Q"), (when(col("__POLARS_CSER_0x100000007")).then((col("ELNATR_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_PROV_LN"), (when(col("__POLARS_CSER_0x100000007")).then((col("NTLNLS_QTR") * 4.0) / col("LNLSGR")).otherwise(null.cast(Float64)) * 100.0).alias("F_NCO_LN"), (when(col("__POLARS_CSER_0x100000003")).then((col("CHBAL") + col("SC")) / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_LIQ"), (when(col("__POLARS_CSER_0x100000020")).then(col("BRO") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_BRO_DEP"), (when(col("__POLARS_CSER_0x100000003")).then(col("ORE") / col("ASSET")).otherwise(null.cast(Float64)) * 100.0).alias("F_ORE_TA"), (when(col("__POLARS_CSER_0x100000020")).then(col("LNLSGR") / col("DEP")).otherwise(null.cast(Float64)) * 100.0).alias("F_LN_DEP"), col("ASSET").log([dyn float: 2.718281828459045]).alias("F_LOG_TA"), when((col("CERT").shift([dyn int: 4]) == col("CERT")) & ((col("QIDX") - col("QIDX").shift([dyn int: 4])) == 4)).then(when(col("__POLARS_CSER_0x100000032") > 0.0).then(col("ASSET") / col("__POLARS_CSER_0x100000032")).otherwise(null.cast(Float64)) - 1.0).otherwise(null.cast(Float64)).alias("F_TA_GROWTH_4Q")] 
+                 WITH_COLUMNS:
+                 [(col("ASSET") > 0.0).alias("__POLARS_CSER_0x100000003"), (col("LNLSGR") > 0.0).alias("__POLARS_CSER_0x100000007"), (col("DEP") > 0.0).alias("__POLARS_CSER_0x100000020"), col("ASSET").shift([dyn int: 4]).alias("__POLARS_CSER_0x100000032")] 
+                  SORT BY [col("CERT"), col("QIDX")]
+                    Parquet SCAN [C:/Users/Phuong Anh/OneDrive/Tài liệu/Bigdata_final_exam/data/processed/panel/YEAR=1984/part-0.parquet, ... 42 other sources]
+                    PROJECT 20/59 COLUMNS
+                    ESTIMATED ROWS: 1703669
+      RIGHT PLAN ON: [col("REPDTE")]
+        AGGREGATE[maintain_order: false]
+          [col("F_ROA_Q").median().alias("ROA_MEDIAN_Q")] BY [col("REPDTE")]
+          FROM
+          simple π 2/2 ["REPDTE", "F_ROA_Q"]
+            CACHE[id: ee02530f-5e84-4f1a-b258-c99c0422a851]
+      END LEFT JOIN
