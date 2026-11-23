@@ -1,0 +1,427 @@
+===== FORMATTED PHYSICAL PLAN (by-year result) =====
+== Physical Plan ==
+AdaptiveSparkPlan (50)
++- == Final Plan ==
+   * Sort (31)
+   +- AQEShuffleRead (30)
+      +- ShuffleQueryStage (29), Statistics(sizeInBytes=2.4 KiB, rowCount=43)
+         +- Exchange (28)
+            +- * HashAggregate (27)
+               +- AQEShuffleRead (26)
+                  +- ShuffleQueryStage (25), Statistics(sizeInBytes=9.1 KiB, rowCount=129)
+                     +- Exchange (24)
+                        +- * HashAggregate (23)
+                           +- * Project (22)
+                              +- * BroadcastHashJoin LeftOuter BuildRight (21)
+                                 :- * Project (9)
+                                 :  +- Window (8)
+                                 :     +- * Sort (7)
+                                 :        +- AQEShuffleRead (6)
+                                 :           +- ShuffleQueryStage (5), Statistics(sizeInBytes=89.9 MiB, rowCount=1.68E+6)
+                                 :              +- Exchange (4)
+                                 :                 +- * Project (3)
+                                 :                    +- * ColumnarToRow (2)
+                                 :                       +- Scan parquet  (1)
+                                 +- BroadcastQueryStage (20), Statistics(sizeInBytes=64.0 MiB, rowCount=170)
+                                    +- BroadcastExchange (19)
+                                       +- ObjectHashAggregate (18)
+                                          +- AQEShuffleRead (17)
+                                             +- ShuffleQueryStage (16), Statistics(sizeInBytes=44.7 MiB, rowCount=170)
+                                                +- Exchange (15)
+                                                   +- ObjectHashAggregate (14)
+                                                      +- * Project (13)
+                                                         +- * Filter (12)
+                                                            +- * ColumnarToRow (11)
+                                                               +- Scan parquet  (10)
++- == Initial Plan ==
+   Sort (49)
+   +- Exchange (48)
+      +- HashAggregate (47)
+         +- Exchange (46)
+            +- HashAggregate (45)
+               +- Project (44)
+                  +- BroadcastHashJoin LeftOuter BuildRight (43)
+                     :- Project (36)
+                     :  +- Window (35)
+                     :     +- Sort (34)
+                     :        +- Exchange (33)
+                     :           +- Project (32)
+                     :              +- Scan parquet  (1)
+                     +- BroadcastExchange (42)
+                        +- ObjectHashAggregate (41)
+                           +- Exchange (40)
+                              +- ObjectHashAggregate (39)
+                                 +- Project (38)
+                                    +- Filter (37)
+                                       +- Scan parquet  (10)
+
+
+(1) Scan parquet 
+Output [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, NETINC_QTR#13, Y#18]
+Batched: true
+Location: InMemoryFileIndex [file:/content/spark_input.parquet]
+ReadSchema: struct<CERT:int,REPDTE:date,QIDX:int,ASSET:double,NETINC_QTR:double,Y:tinyint>
+
+(2) ColumnarToRow [codegen id : 1]
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, NETINC_QTR#13, Y#18]
+
+(3) Project [codegen id : 1]
+Output [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, CASE WHEN (ASSET#3 > 0.0) THEN (((NETINC_QTR#13 * 4.0) / ASSET#3) * 100.0) END AS F_ROA_Q#40]
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, NETINC_QTR#13, Y#18]
+
+(4) Exchange
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: hashpartitioning(CERT#0, 8), ENSURE_REQUIREMENTS, [plan_id=443]
+
+(5) ShuffleQueryStage
+Output [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: 0
+
+(6) AQEShuffleRead
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: coalesced
+
+(7) Sort [codegen id : 3]
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: [CERT#0 ASC NULLS FIRST, QIDX#2 ASC NULLS FIRST], false, 0
+
+(8) Window
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63, lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+
+(9) Project [codegen id : 4]
+Output [4]: [REPDTE#1, Y#18, F_ROA_Q#40, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > 0.0)) THEN ((ASSET#3 / ASSET_L4#86) - 1.0) END AS F_TA_GROWTH_4Q#110]
+Input [8]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+
+(10) Scan parquet 
+Output [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+Batched: true
+Location: InMemoryFileIndex [file:/content/spark_input.parquet]
+PushedFilters: [IsNotNull(REPDTE)]
+ReadSchema: struct<REPDTE:date,ASSET:double,NETINC_QTR:double>
+
+(11) ColumnarToRow [codegen id : 2]
+Input [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+
+(12) Filter [codegen id : 2]
+Input [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+Condition : isnotnull(REPDTE#164)
+
+(13) Project [codegen id : 2]
+Output [2]: [REPDTE#164, CASE WHEN (ASSET#166 > 0.0) THEN (((NETINC_QTR#176 * 4.0) / ASSET#166) * 100.0) END AS F_ROA_Q#40]
+Input [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+
+(14) ObjectHashAggregate
+Input [2]: [REPDTE#164, F_ROA_Q#40]
+Keys [1]: [REPDTE#164]
+Functions [1]: [partial_percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)]
+Aggregate Attributes [1]: [buf#339]
+Results [2]: [REPDTE#164, buf#340]
+
+(15) Exchange
+Input [2]: [REPDTE#164, buf#340]
+Arguments: hashpartitioning(REPDTE#164, 8), ENSURE_REQUIREMENTS, [plan_id=466]
+
+(16) ShuffleQueryStage
+Output [2]: [REPDTE#164, buf#340]
+Arguments: 1
+
+(17) AQEShuffleRead
+Input [2]: [REPDTE#164, buf#340]
+Arguments: coalesced
+
+(18) ObjectHashAggregate
+Input [2]: [REPDTE#164, buf#340]
+Keys [1]: [REPDTE#164]
+Functions [1]: [percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)]
+Aggregate Attributes [1]: [percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)#159]
+Results [2]: [REPDTE#164, percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)#159 AS ROA_MEDIAN_Q#160]
+
+(19) BroadcastExchange
+Input [2]: [REPDTE#164, ROA_MEDIAN_Q#160]
+Arguments: HashedRelationBroadcastMode(List(input[0, date, true]),false), [plan_id=585]
+
+(20) BroadcastQueryStage
+Output [2]: [REPDTE#164, ROA_MEDIAN_Q#160]
+Arguments: 2
+
+(21) BroadcastHashJoin [codegen id : 4]
+Left keys [1]: [REPDTE#1]
+Right keys [1]: [REPDTE#164]
+Join type: LeftOuter
+Join condition: None
+
+(22) Project [codegen id : 4]
+Output [4]: [Y#18, F_TA_GROWTH_4Q#110, (F_ROA_Q#40 - ROA_MEDIAN_Q#160) AS F_ROA_VS_MEDIAN#209, year(REPDTE#1) AS YEAR#236]
+Input [6]: [REPDTE#1, Y#18, F_ROA_Q#40, F_TA_GROWTH_4Q#110, REPDTE#164, ROA_MEDIAN_Q#160]
+
+(23) HashAggregate [codegen id : 4]
+Input [4]: [Y#18, F_TA_GROWTH_4Q#110, F_ROA_VS_MEDIAN#209, YEAR#236]
+Keys [1]: [YEAR#236]
+Functions [5]: [partial_count(1), partial_sum(Y#18), partial_count(F_TA_GROWTH_4Q#110), partial_avg(F_TA_GROWTH_4Q#110), partial_avg(F_ROA_VS_MEDIAN#209)]
+Aggregate Attributes [7]: [count#325L, sum#326L, count#327L, sum#328, count#329L, sum#330, count#331L]
+Results [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+
+(24) Exchange
+Input [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Arguments: hashpartitioning(YEAR#236, 8), ENSURE_REQUIREMENTS, [plan_id=664]
+
+(25) ShuffleQueryStage
+Output [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Arguments: 3
+
+(26) AQEShuffleRead
+Input [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Arguments: coalesced
+
+(27) HashAggregate [codegen id : 5]
+Input [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Keys [1]: [YEAR#236]
+Functions [5]: [count(1), sum(Y#18), count(F_TA_GROWTH_4Q#110), avg(F_TA_GROWTH_4Q#110), avg(F_ROA_VS_MEDIAN#209)]
+Aggregate Attributes [5]: [count(1)#291L, sum(Y#18)#293L, count(F_TA_GROWTH_4Q#110)#295L, avg(F_TA_GROWTH_4Q#110)#297, avg(F_ROA_VS_MEDIAN#209)#299]
+Results [6]: [YEAR#236, count(1)#291L AS rows#292L, sum(Y#18)#293L AS sum_Y#294L, count(F_TA_GROWTH_4Q#110)#295L AS n_growth#296L, avg(F_TA_GROWTH_4Q#110)#297 AS mean_growth#298, avg(F_ROA_VS_MEDIAN#209)#299 AS mean_roa_vs_median#300]
+
+(28) Exchange
+Input [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: rangepartitioning(YEAR#236 ASC NULLS FIRST, 8), ENSURE_REQUIREMENTS, [plan_id=705]
+
+(29) ShuffleQueryStage
+Output [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: 4
+
+(30) AQEShuffleRead
+Input [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: coalesced
+
+(31) Sort [codegen id : 6]
+Input [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: [YEAR#236 ASC NULLS FIRST], true, 0
+
+(32) Project
+Output [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, CASE WHEN (ASSET#3 > 0.0) THEN (((NETINC_QTR#13 * 4.0) / ASSET#3) * 100.0) END AS F_ROA_Q#40]
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, NETINC_QTR#13, Y#18]
+
+(33) Exchange
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: hashpartitioning(CERT#0, 8), ENSURE_REQUIREMENTS, [plan_id=384]
+
+(34) Sort
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: [CERT#0 ASC NULLS FIRST, QIDX#2 ASC NULLS FIRST], false, 0
+
+(35) Window
+Input [6]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40]
+Arguments: [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63, lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+
+(36) Project
+Output [4]: [REPDTE#1, Y#18, F_ROA_Q#40, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > 0.0)) THEN ((ASSET#3 / ASSET_L4#86) - 1.0) END AS F_TA_GROWTH_4Q#110]
+Input [8]: [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+
+(37) Filter
+Input [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+Condition : isnotnull(REPDTE#164)
+
+(38) Project
+Output [2]: [REPDTE#164, CASE WHEN (ASSET#166 > 0.0) THEN (((NETINC_QTR#176 * 4.0) / ASSET#166) * 100.0) END AS F_ROA_Q#40]
+Input [3]: [REPDTE#164, ASSET#166, NETINC_QTR#176]
+
+(39) ObjectHashAggregate
+Input [2]: [REPDTE#164, F_ROA_Q#40]
+Keys [1]: [REPDTE#164]
+Functions [1]: [partial_percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)]
+Aggregate Attributes [1]: [buf#339]
+Results [2]: [REPDTE#164, buf#340]
+
+(40) Exchange
+Input [2]: [REPDTE#164, buf#340]
+Arguments: hashpartitioning(REPDTE#164, 8), ENSURE_REQUIREMENTS, [plan_id=388]
+
+(41) ObjectHashAggregate
+Input [2]: [REPDTE#164, buf#340]
+Keys [1]: [REPDTE#164]
+Functions [1]: [percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)]
+Aggregate Attributes [1]: [percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)#159]
+Results [2]: [REPDTE#164, percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)#159 AS ROA_MEDIAN_Q#160]
+
+(42) BroadcastExchange
+Input [2]: [REPDTE#164, ROA_MEDIAN_Q#160]
+Arguments: HashedRelationBroadcastMode(List(input[0, date, true]),false), [plan_id=391]
+
+(43) BroadcastHashJoin
+Left keys [1]: [REPDTE#1]
+Right keys [1]: [REPDTE#164]
+Join type: LeftOuter
+Join condition: None
+
+(44) Project
+Output [4]: [Y#18, F_TA_GROWTH_4Q#110, (F_ROA_Q#40 - ROA_MEDIAN_Q#160) AS F_ROA_VS_MEDIAN#209, year(REPDTE#1) AS YEAR#236]
+Input [6]: [REPDTE#1, Y#18, F_ROA_Q#40, F_TA_GROWTH_4Q#110, REPDTE#164, ROA_MEDIAN_Q#160]
+
+(45) HashAggregate
+Input [4]: [Y#18, F_TA_GROWTH_4Q#110, F_ROA_VS_MEDIAN#209, YEAR#236]
+Keys [1]: [YEAR#236]
+Functions [5]: [partial_count(1), partial_sum(Y#18), partial_count(F_TA_GROWTH_4Q#110), partial_avg(F_TA_GROWTH_4Q#110), partial_avg(F_ROA_VS_MEDIAN#209)]
+Aggregate Attributes [7]: [count#325L, sum#326L, count#327L, sum#328, count#329L, sum#330, count#331L]
+Results [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+
+(46) Exchange
+Input [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Arguments: hashpartitioning(YEAR#236, 8), ENSURE_REQUIREMENTS, [plan_id=396]
+
+(47) HashAggregate
+Input [8]: [YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L]
+Keys [1]: [YEAR#236]
+Functions [5]: [count(1), sum(Y#18), count(F_TA_GROWTH_4Q#110), avg(F_TA_GROWTH_4Q#110), avg(F_ROA_VS_MEDIAN#209)]
+Aggregate Attributes [5]: [count(1)#291L, sum(Y#18)#293L, count(F_TA_GROWTH_4Q#110)#295L, avg(F_TA_GROWTH_4Q#110)#297, avg(F_ROA_VS_MEDIAN#209)#299]
+Results [6]: [YEAR#236, count(1)#291L AS rows#292L, sum(Y#18)#293L AS sum_Y#294L, count(F_TA_GROWTH_4Q#110)#295L AS n_growth#296L, avg(F_TA_GROWTH_4Q#110)#297 AS mean_growth#298, avg(F_ROA_VS_MEDIAN#209)#299 AS mean_roa_vs_median#300]
+
+(48) Exchange
+Input [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: rangepartitioning(YEAR#236 ASC NULLS FIRST, 8), ENSURE_REQUIREMENTS, [plan_id=399]
+
+(49) Sort
+Input [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: [YEAR#236 ASC NULLS FIRST], true, 0
+
+(50) AdaptiveSparkPlan
+Output [6]: [YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300]
+Arguments: isFinalPlan=true
+
+
+
+===== EXTENDED PLAN (parsed -> analyzed -> optimized -> physical) =====
+== Parsed Logical Plan ==
+'Sort ['YEAR ASC NULLS FIRST], true
++- Aggregate [YEAR#236], [YEAR#236, count(1) AS rows#292L, sum(Y#18) AS sum_Y#294L, count(F_TA_GROWTH_4Q#110) AS n_growth#296L, avg(F_TA_GROWTH_4Q#110) AS mean_growth#298, avg(F_ROA_VS_MEDIAN#209) AS mean_roa_vs_median#300]
+   +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ... 3 more fields]
+      +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ... 2 more fields]
+         +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ROA_MEDIAN_Q#160]
+            +- Join LeftOuter, (REPDTE#1 = REPDTE#164)
+               :- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > cast(0 as double))) THEN ((ASSET#3 / ASSET_L4#86) - cast(1 as double)) END AS F_TA_GROWTH_4Q#110]
+               :  +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+               :     +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, ASSET_L4#86]
+               :        +- Window [lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+               :           +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63]
+               :              +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63]
+               :                 +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, QIDX_L4#63]
+               :                    +- Window [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+               :                       +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40]
+               :                          +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, CASE WHEN (ASSET#3 > cast(0 as double)) THEN (((NETINC_QTR#13 * cast(4 as double)) / ASSET#3) * cast(100 as double)) END AS F_ROA_Q#40]
+               :                             +- Relation [CERT#0,REPDTE#1,QIDX#2,ASSET#3,EQ#4,DEP#5,LNLSGR#6,NCLNLS#7,LNATRES#8,CHBAL#9,SC#10,BRO#11,ORE#12,NETINC_QTR#13,INTINC_QTR#14,EINTEXP_QTR#15,ELNATR_QTR#16,NTLNLS_QTR#17,Y#18,LABEL_AVAILABLE#19] parquet
+               +- ResolvedHint (strategy=broadcast)
+                  +- Aggregate [REPDTE#164], [REPDTE#164, median(F_ROA_Q#40) AS ROA_MEDIAN_Q#160]
+                     +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, CASE WHEN (((QIDX#165 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > cast(0 as double))) THEN ((ASSET#166 / ASSET_L4#86) - cast(1 as double)) END AS F_TA_GROWTH_4Q#110]
+                        +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+                           +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, ASSET_L4#86]
+                              +- Window [lag(ASSET#166, -4, null) windowspecdefinition(CERT#163, QIDX#165 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#163], [QIDX#165 ASC NULLS FIRST]
+                                 +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63]
+                                    +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63]
+                                       +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, QIDX_L4#63]
+                                          +- Window [lag(QIDX#165, -4, null) windowspecdefinition(CERT#163, QIDX#165 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63], [CERT#163], [QIDX#165 ASC NULLS FIRST]
+                                             +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40]
+                                                +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, CASE WHEN (ASSET#166 > cast(0 as double)) THEN (((NETINC_QTR#176 * cast(4 as double)) / ASSET#166) * cast(100 as double)) END AS F_ROA_Q#40]
+                                                   +- Relation [CERT#163,REPDTE#164,QIDX#165,ASSET#166,EQ#167,DEP#168,LNLSGR#169,NCLNLS#170,LNATRES#171,CHBAL#172,SC#173,BRO#174,ORE#175,NETINC_QTR#176,INTINC_QTR#177,EINTEXP_QTR#178,ELNATR_QTR#179,NTLNLS_QTR#180,Y#181,LABEL_AVAILABLE#182] parquet
+
+== Analyzed Logical Plan ==
+YEAR: int, rows: bigint, sum_Y: bigint, n_growth: bigint, mean_growth: double, mean_roa_vs_median: double
+Sort [YEAR#236 ASC NULLS FIRST], true
++- Aggregate [YEAR#236], [YEAR#236, count(1) AS rows#292L, sum(Y#18) AS sum_Y#294L, count(F_TA_GROWTH_4Q#110) AS n_growth#296L, avg(F_TA_GROWTH_4Q#110) AS mean_growth#298, avg(F_ROA_VS_MEDIAN#209) AS mean_roa_vs_median#300]
+   +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ... 3 more fields]
+      +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ... 2 more fields]
+         +- Project [REPDTE#1, CERT#0, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, F_TA_GROWTH_4Q#110, ROA_MEDIAN_Q#160]
+            +- Join LeftOuter, (REPDTE#1 = REPDTE#164)
+               :- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > cast(0 as double))) THEN ((ASSET#3 / ASSET_L4#86) - cast(1 as double)) END AS F_TA_GROWTH_4Q#110]
+               :  +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+               :     +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, ASSET_L4#86]
+               :        +- Window [lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+               :           +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63]
+               :              +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63]
+               :                 +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40, QIDX_L4#63, QIDX_L4#63]
+               :                    +- Window [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+               :                       +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, F_ROA_Q#40]
+               :                          +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, EQ#4, DEP#5, LNLSGR#6, NCLNLS#7, LNATRES#8, CHBAL#9, SC#10, BRO#11, ORE#12, NETINC_QTR#13, INTINC_QTR#14, EINTEXP_QTR#15, ELNATR_QTR#16, NTLNLS_QTR#17, Y#18, LABEL_AVAILABLE#19, CASE WHEN (ASSET#3 > cast(0 as double)) THEN (((NETINC_QTR#13 * cast(4 as double)) / ASSET#3) * cast(100 as double)) END AS F_ROA_Q#40]
+               :                             +- Relation [CERT#0,REPDTE#1,QIDX#2,ASSET#3,EQ#4,DEP#5,LNLSGR#6,NCLNLS#7,LNATRES#8,CHBAL#9,SC#10,BRO#11,ORE#12,NETINC_QTR#13,INTINC_QTR#14,EINTEXP_QTR#15,ELNATR_QTR#16,NTLNLS_QTR#17,Y#18,LABEL_AVAILABLE#19] parquet
+               +- ResolvedHint (strategy=broadcast)
+                  +- Aggregate [REPDTE#164], [REPDTE#164, median(F_ROA_Q#40) AS ROA_MEDIAN_Q#160]
+                     +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, CASE WHEN (((QIDX#165 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > cast(0 as double))) THEN ((ASSET#166 / ASSET_L4#86) - cast(1 as double)) END AS F_TA_GROWTH_4Q#110]
+                        +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86]
+                           +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, ASSET_L4#86, ASSET_L4#86]
+                              +- Window [lag(ASSET#166, -4, null) windowspecdefinition(CERT#163, QIDX#165 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#163], [QIDX#165 ASC NULLS FIRST]
+                                 +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63]
+                                    +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63]
+                                       +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40, QIDX_L4#63, QIDX_L4#63]
+                                          +- Window [lag(QIDX#165, -4, null) windowspecdefinition(CERT#163, QIDX#165 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63], [CERT#163], [QIDX#165 ASC NULLS FIRST]
+                                             +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, F_ROA_Q#40]
+                                                +- Project [CERT#163, REPDTE#164, QIDX#165, ASSET#166, EQ#167, DEP#168, LNLSGR#169, NCLNLS#170, LNATRES#171, CHBAL#172, SC#173, BRO#174, ORE#175, NETINC_QTR#176, INTINC_QTR#177, EINTEXP_QTR#178, ELNATR_QTR#179, NTLNLS_QTR#180, Y#181, LABEL_AVAILABLE#182, CASE WHEN (ASSET#166 > cast(0 as double)) THEN (((NETINC_QTR#176 * cast(4 as double)) / ASSET#166) * cast(100 as double)) END AS F_ROA_Q#40]
+                                                   +- Relation [CERT#163,REPDTE#164,QIDX#165,ASSET#166,EQ#167,DEP#168,LNLSGR#169,NCLNLS#170,LNATRES#171,CHBAL#172,SC#173,BRO#174,ORE#175,NETINC_QTR#176,INTINC_QTR#177,EINTEXP_QTR#178,ELNATR_QTR#179,NTLNLS_QTR#180,Y#181,LABEL_AVAILABLE#182] parquet
+
+== Optimized Logical Plan ==
+Sort [YEAR#236 ASC NULLS FIRST], true
++- Aggregate [YEAR#236], [YEAR#236, count(1) AS rows#292L, sum(Y#18) AS sum_Y#294L, count(F_TA_GROWTH_4Q#110) AS n_growth#296L, avg(F_TA_GROWTH_4Q#110) AS mean_growth#298, avg(F_ROA_VS_MEDIAN#209) AS mean_roa_vs_median#300]
+   +- Project [Y#18, F_TA_GROWTH_4Q#110, (F_ROA_Q#40 - ROA_MEDIAN_Q#160) AS F_ROA_VS_MEDIAN#209, year(REPDTE#1) AS YEAR#236]
+      +- Join LeftOuter, (REPDTE#1 = REPDTE#164), rightHint=(strategy=broadcast)
+         :- Project [REPDTE#1, Y#18, F_ROA_Q#40, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > 0.0)) THEN ((ASSET#3 / ASSET_L4#86) - 1.0) END AS F_TA_GROWTH_4Q#110]
+         :  +- Window [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63, lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+         :     +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, CASE WHEN (ASSET#3 > 0.0) THEN (((NETINC_QTR#13 * 4.0) / ASSET#3) * 100.0) END AS F_ROA_Q#40]
+         :        +- Relation [CERT#0,REPDTE#1,QIDX#2,ASSET#3,EQ#4,DEP#5,LNLSGR#6,NCLNLS#7,LNATRES#8,CHBAL#9,SC#10,BRO#11,ORE#12,NETINC_QTR#13,INTINC_QTR#14,EINTEXP_QTR#15,ELNATR_QTR#16,NTLNLS_QTR#17,Y#18,LABEL_AVAILABLE#19] parquet
+         +- Aggregate [REPDTE#164], [REPDTE#164, percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false) AS ROA_MEDIAN_Q#160]
+            +- Project [REPDTE#164, CASE WHEN (ASSET#166 > 0.0) THEN (((NETINC_QTR#176 * 4.0) / ASSET#166) * 100.0) END AS F_ROA_Q#40]
+               +- Filter isnotnull(REPDTE#164)
+                  +- Relation [CERT#163,REPDTE#164,QIDX#165,ASSET#166,EQ#167,DEP#168,LNLSGR#169,NCLNLS#170,LNATRES#171,CHBAL#172,SC#173,BRO#174,ORE#175,NETINC_QTR#176,INTINC_QTR#177,EINTEXP_QTR#178,ELNATR_QTR#179,NTLNLS_QTR#180,Y#181,LABEL_AVAILABLE#182] parquet
+
+== Physical Plan ==
+AdaptiveSparkPlan isFinalPlan=true
++- == Final Plan ==
+   *(6) Sort [YEAR#236 ASC NULLS FIRST], true, 0
+   +- AQEShuffleRead coalesced
+      +- ShuffleQueryStage 4
+         +- Exchange rangepartitioning(YEAR#236 ASC NULLS FIRST, 8), ENSURE_REQUIREMENTS, [plan_id=705]
+            +- *(5) HashAggregate(keys=[YEAR#236], functions=[count(1), sum(Y#18), count(F_TA_GROWTH_4Q#110), avg(F_TA_GROWTH_4Q#110), avg(F_ROA_VS_MEDIAN#209)], output=[YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300])
+               +- AQEShuffleRead coalesced
+                  +- ShuffleQueryStage 3
+                     +- Exchange hashpartitioning(YEAR#236, 8), ENSURE_REQUIREMENTS, [plan_id=664]
+                        +- *(4) HashAggregate(keys=[YEAR#236], functions=[partial_count(1), partial_sum(Y#18), partial_count(F_TA_GROWTH_4Q#110), partial_avg(F_TA_GROWTH_4Q#110), partial_avg(F_ROA_VS_MEDIAN#209)], output=[YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L])
+                           +- *(4) Project [Y#18, F_TA_GROWTH_4Q#110, (F_ROA_Q#40 - ROA_MEDIAN_Q#160) AS F_ROA_VS_MEDIAN#209, year(REPDTE#1) AS YEAR#236]
+                              +- *(4) BroadcastHashJoin [REPDTE#1], [REPDTE#164], LeftOuter, BuildRight, false
+                                 :- *(4) Project [REPDTE#1, Y#18, F_ROA_Q#40, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > 0.0)) THEN ((ASSET#3 / ASSET_L4#86) - 1.0) END AS F_TA_GROWTH_4Q#110]
+                                 :  +- Window [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63, lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+                                 :     +- *(3) Sort [CERT#0 ASC NULLS FIRST, QIDX#2 ASC NULLS FIRST], false, 0
+                                 :        +- AQEShuffleRead coalesced
+                                 :           +- ShuffleQueryStage 0
+                                 :              +- Exchange hashpartitioning(CERT#0, 8), ENSURE_REQUIREMENTS, [plan_id=443]
+                                 :                 +- *(1) Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, CASE WHEN (ASSET#3 > 0.0) THEN (((NETINC_QTR#13 * 4.0) / ASSET#3) * 100.0) END AS F_ROA_Q#40]
+                                 :                    +- *(1) ColumnarToRow
+                                 :                       +- FileScan parquet [CERT#0,REPDTE#1,QIDX#2,ASSET#3,NETINC_QTR#13,Y#18] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/content/spark_input.parquet], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<CERT:int,REPDTE:date,QIDX:int,ASSET:double,NETINC_QTR:double,Y:tinyint>
+                                 +- BroadcastQueryStage 2
+                                    +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, date, true]),false), [plan_id=585]
+                                       +- ObjectHashAggregate(keys=[REPDTE#164], functions=[percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)], output=[REPDTE#164, ROA_MEDIAN_Q#160])
+                                          +- AQEShuffleRead coalesced
+                                             +- ShuffleQueryStage 1
+                                                +- Exchange hashpartitioning(REPDTE#164, 8), ENSURE_REQUIREMENTS, [plan_id=466]
+                                                   +- ObjectHashAggregate(keys=[REPDTE#164], functions=[partial_percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)], output=[REPDTE#164, buf#340])
+                                                      +- *(2) Project [REPDTE#164, CASE WHEN (ASSET#166 > 0.0) THEN (((NETINC_QTR#176 * 4.0) / ASSET#166) * 100.0) END AS F_ROA_Q#40]
+                                                         +- *(2) Filter isnotnull(REPDTE#164)
+                                                            +- *(2) ColumnarToRow
+                                                               +- FileScan parquet [REPDTE#164,ASSET#166,NETINC_QTR#176] Batched: true, DataFilters: [isnotnull(REPDTE#164)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/content/spark_input.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(REPDTE)], ReadSchema: struct<REPDTE:date,ASSET:double,NETINC_QTR:double>
++- == Initial Plan ==
+   Sort [YEAR#236 ASC NULLS FIRST], true, 0
+   +- Exchange rangepartitioning(YEAR#236 ASC NULLS FIRST, 8), ENSURE_REQUIREMENTS, [plan_id=399]
+      +- HashAggregate(keys=[YEAR#236], functions=[count(1), sum(Y#18), count(F_TA_GROWTH_4Q#110), avg(F_TA_GROWTH_4Q#110), avg(F_ROA_VS_MEDIAN#209)], output=[YEAR#236, rows#292L, sum_Y#294L, n_growth#296L, mean_growth#298, mean_roa_vs_median#300])
+         +- Exchange hashpartitioning(YEAR#236, 8), ENSURE_REQUIREMENTS, [plan_id=396]
+            +- HashAggregate(keys=[YEAR#236], functions=[partial_count(1), partial_sum(Y#18), partial_count(F_TA_GROWTH_4Q#110), partial_avg(F_TA_GROWTH_4Q#110), partial_avg(F_ROA_VS_MEDIAN#209)], output=[YEAR#236, count#332L, sum#333L, count#334L, sum#335, count#336L, sum#337, count#338L])
+               +- Project [Y#18, F_TA_GROWTH_4Q#110, (F_ROA_Q#40 - ROA_MEDIAN_Q#160) AS F_ROA_VS_MEDIAN#209, year(REPDTE#1) AS YEAR#236]
+                  +- BroadcastHashJoin [REPDTE#1], [REPDTE#164], LeftOuter, BuildRight, false
+                     :- Project [REPDTE#1, Y#18, F_ROA_Q#40, CASE WHEN (((QIDX#2 - QIDX_L4#63) = 4) AND (ASSET_L4#86 > 0.0)) THEN ((ASSET#3 / ASSET_L4#86) - 1.0) END AS F_TA_GROWTH_4Q#110]
+                     :  +- Window [lag(QIDX#2, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS QIDX_L4#63, lag(ASSET#3, -4, null) windowspecdefinition(CERT#0, QIDX#2 ASC NULLS FIRST, specifiedwindowframe(RowFrame, -4, -4)) AS ASSET_L4#86], [CERT#0], [QIDX#2 ASC NULLS FIRST]
+                     :     +- Sort [CERT#0 ASC NULLS FIRST, QIDX#2 ASC NULLS FIRST], false, 0
+                     :        +- Exchange hashpartitioning(CERT#0, 8), ENSURE_REQUIREMENTS, [plan_id=384]
+                     :           +- Project [CERT#0, REPDTE#1, QIDX#2, ASSET#3, Y#18, CASE WHEN (ASSET#3 > 0.0) THEN (((NETINC_QTR#13 * 4.0) / ASSET#3) * 100.0) END AS F_ROA_Q#40]
+                     :              +- FileScan parquet [CERT#0,REPDTE#1,QIDX#2,ASSET#3,NETINC_QTR#13,Y#18] Batched: true, DataFilters: [], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/content/spark_input.parquet], PartitionFilters: [], PushedFilters: [], ReadSchema: struct<CERT:int,REPDTE:date,QIDX:int,ASSET:double,NETINC_QTR:double,Y:tinyint>
+                     +- BroadcastExchange HashedRelationBroadcastMode(List(input[0, date, true]),false), [plan_id=391]
+                        +- ObjectHashAggregate(keys=[REPDTE#164], functions=[percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)], output=[REPDTE#164, ROA_MEDIAN_Q#160])
+                           +- Exchange hashpartitioning(REPDTE#164, 8), ENSURE_REQUIREMENTS, [plan_id=388]
+                              +- ObjectHashAggregate(keys=[REPDTE#164], functions=[partial_percentile(F_ROA_Q#40, 0.5, 1, 0, 0, false)], output=[REPDTE#164, buf#340])
+                                 +- Project [REPDTE#164, CASE WHEN (ASSET#166 > 0.0) THEN (((NETINC_QTR#176 * 4.0) / ASSET#166) * 100.0) END AS F_ROA_Q#40]
+                                    +- Filter isnotnull(REPDTE#164)
+                                       +- FileScan parquet [REPDTE#164,ASSET#166,NETINC_QTR#176] Batched: true, DataFilters: [isnotnull(REPDTE#164)], Format: Parquet, Location: InMemoryFileIndex(1 paths)[file:/content/spark_input.parquet], PartitionFilters: [], PushedFilters: [IsNotNull(REPDTE)], ReadSchema: struct<REPDTE:date,ASSET:double,NETINC_QTR:double>
+

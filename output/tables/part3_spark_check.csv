@@ -1,0 +1,11 @@
+check,max_abs_diff,match,polars,spark
+by year: rows,0.0,True,,
+by year: sum_Y,0.0,True,,
+by year: n_growth,0.0,True,,
+by year: mean_growth,6.661338147750939e-16,True,,
+by year: mean_roa_vs_median,2.842170943040401e-14,True,,
+total: rows,0.0,True,1682738.0,1682738.0
+total: sum_Y,0.0,True,12495.0,12495.0
+total: n_growth,0.0,True,1587806.0,1587806.0
+total: sum_growth,3.259629011154175e-09,True,223494.07276020735,223494.0727602041
+total: sum_roa_vs_median,1.4435499906539917e-08,True,2770916.428857274,2770916.4288572883
