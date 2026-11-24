@@ -1,0 +1,2 @@
+engine,fit_seconds_on_dev,test_areaUnderPR_spark,test_areaUnderROC_spark,test_average_precision_sklearn,test_roc_auc_sklearn
+Spark MLlib logistic (local[*]),100.0,0.36904516949994687,0.9536613637936215,0.37885328932109097,0.9536720468876392
