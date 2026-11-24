@@ -1,0 +1,17 @@
+{
+  "threshold": 0.007919774028318751,
+  "TP": 1944,
+  "FP": 8845,
+  "FN": 237,
+  "TN": 424420,
+  "recall": 0.8913342503438789,
+  "precision": 0.18018352025210863,
+  "alarm_rate": 0.024776895412978877,
+  "recall_excluding_late_signal_rows": 0.8780350084697911,
+  "failure_events": 558,
+  "events_flagged_at_least_once": 528,
+  "events_flagged_by_a_timely_row": 521,
+  "expected_cost_model": 2994160.4390800004,
+  "expected_cost_no_alarm": 19414216.95204,
+  "expected_cost_alarm_all": 43326500.0
+}
