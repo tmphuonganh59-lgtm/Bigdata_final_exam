@@ -206,9 +206,9 @@ def main():
         ax.set_xlim(0.45, 1.0)
         ax.set_xlabel("Univariate ROC-AUC on the development period (max(AUC, 1-AUC))")
         ax.set_title("Figure 6. Stand-alone strength of each feature (dev 1984-2006 only)")
-        for g, col in colors.items():
-            ax.barh([], [], color=col, label=g)
-        ax.legend(title="CAMELS", loc="lower right", fontsize=8)
+        from matplotlib.patches import Patch
+        ax.legend(handles=[Patch(color=col, label=g) for g, col in colors.items()],
+                  title="CAMELS", loc="lower right", fontsize=8)
         fig.tight_layout()
         fig.savefig(OUT_FIG / "part4_univariate_auc.png", dpi=200)
         plt.close(fig)
