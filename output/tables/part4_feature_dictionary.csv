@@ -1,0 +1,21 @@
+feature,camels,definition,rationale,expected_sign
+F_EQ_TA,C,EQ / ASSET x 100,Loss-absorbing capital; thin equity is the closest precursor of insolvency,-
+F_LEV_RATIO,C,"Tier 1 leverage ratio (RBC1AAJ, %)",Regulatory capital measure used for prompt corrective action,-
+F_EQ_TA_CHG_4Q,C,F_EQ_TA(q) - F_EQ_TA(q-4),Capital erosion over the last year,-
+F_EQ_TA_PCTRANK,C,Percentile rank of F_EQ_TA among banks in the same quarter,"Capital relative to peers, robust to economy-wide shifts",-
+F_NPL,A,NCLNLS / LNLSGR x 100,Non-current loans: the main driver of losses,+
+F_RES_LN,A,LNATRES / LNLSGR x 100,Loss reserves; high reserves signal expected losses,+
+F_PROV_LN,A,Quarterly provisions x 4 / LNLSGR x 100,New loss recognition,+
+F_NCO_LN,A,Quarterly net charge-offs x 4 / LNLSGR x 100,Realised loan losses,+
+F_ORE_TA,A,ORE / ASSET x 100,Foreclosed real estate: problem assets already repossessed,+
+F_NPL_CHG_1Q,A,F_NPL(q) - F_NPL(q-1),Speed of asset-quality deterioration,+
+F_NPL_PCTRANK,A,Percentile rank of F_NPL in the same quarter,Asset quality relative to peers,+
+F_TA_GROWTH_4Q,M,ASSET(q) / ASSET(q-4) - 1,Aggressive growth (management risk) or forced shrinking,+/-
+F_ROA_Q,E,Quarterly net income x 4 / ASSET x 100,Current profitability; losses consume capital,-
+F_NIM_Q,E,(Interest income - interest expense) x 4 / ASSET x 100,Core earning power,-
+F_ROA_4Q_AVG,E,Mean of the last 4 quarterly ROA,Persistent (not one-off) losses,-
+F_ROA_VS_MEDIAN,E,F_ROA_Q - industry median ROA of the quarter,Profitability relative to the cycle,-
+F_LIQ,L,(CHBAL + SC) / ASSET x 100,Liquid assets available to meet withdrawals,-
+F_BRO_DEP,L,BRO / DEP x 100,Reliance on volatile brokered deposits,+
+F_LN_DEP,L,LNLSGR / DEP x 100,Loans funded by deposits; high values mean funding strain,+
+F_LOG_TA,Size,ln(ASSET),Small banks fail more often and are less diversified,-
