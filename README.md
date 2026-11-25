@@ -72,6 +72,7 @@ On Windows, use `python -X utf8 ...` so that tables print correctly (on macOS/Li
 | 5 | `python -X utf8 src/05_polars_pipeline.py` | `data/processed/features_core/`, `spark_input.parquet`, `output/tables/part3_*` | ~5 min |
 | 6 | `python -X utf8 src/06_features.py` | `data/processed/model_table.parquet`, `preprocessor.joblib`, `output/tables/part4_*` | 1–3 min |
 | 7 | `python -X utf8 src/07_model.py` | `output/tables/part5_*`, `mllib_input.parquet`, figures 7–8 | ~5 min |
+| 8 | `python -X utf8 src/08_sensitivity.py` | `output/tables/part4_feature_auc_signed.csv`, `output/tables/part5_cv_closures_only_*`, Figure 6 (signed AUC); development period only | ~3 min |
 
 The download is resumable: if it stops, run step 1 again and finished quarters are skipped.
 Each script depends on the outputs of the previous ones.
