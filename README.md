@@ -26,7 +26,7 @@ time-ordered validation, cost-based alarm threshold and a single test evaluation
 ## Repository structure
 
 ```
-src/                 Python scripts, run in order 01 -> 07
+src/                 Python scripts, run in order 01 -> 08
   01_download.py         resumable, self-verifying FDIC download (adapted from the course starter script)
   02_storage_bench.py    Part 1: completeness checks + CSV vs Parquet layouts benchmark
   03_quality_report.py   Part 2: automated data-quality report (13 checks, 2 heatmaps)
@@ -34,6 +34,7 @@ src/                 Python scripts, run in order 01 -> 07
   05_polars_pipeline.py  Part 3: core transformations in Polars, benchmark vs pandas, query plans
   06_features.py         Part 4: CAMELS features, truncation test, dev-only preprocessing
   07_model.py            Part 5: time-ordered CV, model comparison, cost-based threshold, single test
+  08_sensitivity.py      Parts 4-5: signed feature AUC and closures-only label check (development period only)
   pipeline_def.py        shared split dates, feature list and preprocessing pipeline (Parts 4-5)
   inspect_tables.py      helper used once to inspect the raw table structure
 notebooks/           Google Colab notebooks, saved WITH outputs
@@ -96,20 +97,27 @@ Each script depends on the outputs of the previous ones.
 
 | Part | Result |
 |---|---|
-| 1 Storage | Parquet + zstd, partitioned by year: 35% of CSV size, 3–26× faster reads |
+| 1 Storage | Parquet + zstd, partitioned by year: 36% of CSV size, 3–26× faster reads |
 | 2 Quality | 13 automated checks; labels match published FDIC failure counts year by year |
 | 3 Processing | Polars 1.9× faster than pandas; Spark results match Polars exactly; Spark 12× slower on one machine |
 | 4 Features | 20 CAMELS features; truncation test: 19/19 features identical, leaky control detected |
 | 5 Model | Test PR-AUC 0.59 (capital-rule baseline 0.28, random 0.005); 528 of 558 failures flagged; expected cost −85% |
 
-## References
+## References and sources
 
-- FDIC BankFind Suite API and field definitions: https://api.fdic.gov/banks/docs/
-- FDIC, *Bank Failures in Brief — Summary by Year* (used to validate the labels).
-- Course starter script `fdic_download_starter.py`, BFT65B, NEU (adapted in `src/01_download.py`).
-- Libraries: Polars, pandas, PyArrow, NumPy, scikit-learn, matplotlib, psutil, Apache Spark / PySpark 3.5.3; Google Colaboratory.
-- News sources used in Part 6 (Vietnam): VietNamNet, *Four underperforming banks in Vietnam restructured through mandatory transfer*; VnExpress International, report on SCB under special control (October 2022).
+- Federal Deposit Insurance Corporation (2026). BankFind Suite API and field definitions. https://api.fdic.gov/banks/docs/ (accessed 22 November 2026).
+- Federal Deposit Insurance Corporation (2026). *Bank Failures in Brief - Summary by Year*. https://www.fdic.gov/resources/resolutions/bank-failures/in-brief (used to validate the labels).
+- Federal Deposit Insurance Corporation (2007). *2006 Annual Report, Section 3: Performance Results Summary*. https://webarchive.library.unt.edu/web/20130226110133/http:/www.fdic.gov/about/strategic/report/2006annualreport/section3.pdf (used to approximate the false-alarm cost C_FP).
+- NEU BFT65B course team (2026). `fdic_download_starter.py` (course starter script, adapted in `src/01_download.py`).
+- Pedregosa, F. et al. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research*, 12, 2825-2830.
+- Polars developers (2026). Polars user guide and API reference. https://docs.pola.rs/
+- Apache Software Foundation (2024). Apache Spark 3.5 documentation (PySpark, Spark SQL, MLlib). https://spark.apache.org/docs/3.5.3/
+- The Apache Software Foundation (2026). Apache Parquet documentation; Apache Arrow (PyArrow) documentation.
+- Google (2026). Google Colaboratory. https://colab.research.google.com/
+- VietNamNet (2025). *Four underperforming banks in Vietnam restructured through mandatory transfer*. https://vietnamnet.vn/en/four-underperforming-banks-in-vietnam-restructured-through-mandatory-transfer-2364609.html
+- VnExpress International (2023). *Central bank reveals investor interest in restructuring troubled lender SCB*. https://e.vnexpress.net/news/business/companies/central-bank-reveals-investor-interest-in-restructuring-troubled-lender-scb-4697940.html
+- Other libraries: pandas, NumPy, matplotlib, psutil, joblib (versions in `requirements.txt`).
 
 ## Use of AI tools
 
-Claude (Anthropic) was used as an assistant to support Python code drafting, explain outputs and query plans, and provide language editing suggestions. The author independently developed the report outline, structure, and content, ran every script, verified every result, and is responsible for the final analysis and report.
+Claude (Anthropic) was used as an assistant to propose the project plan and design options, help draft the Python code and notebooks, explain outputs and query plans, and help draft the text of the report. The author ran every script, checked every result, reviewed and approved the design choices, reviewed and edited the report, and is responsible for the final content. All numbers in the report come from the code in this repository, run by the author.
